@@ -21,19 +21,22 @@ def index():
 # ================================
 @app.route("/gerar", methods=["POST"])
 def gerar():
-    dados = request.get_json()
+    try:
+        dados = request.get_json(force=True, silent=True) or {}
 
-    qtd = int(dados.get("quantidade", 5))
-    modo = dados.get("modo", "ia")
+        qtd = int(dados.get("quantidade", 5))
+        modo = dados.get("modo", "ia")
 
-    if modo == "ia":
-        jogos = gerar_jogos_inteligentes(qtd, resultados_passados=historico if historico else None)
-    else:
-        jogos = gerar_jogos(qtd)
+        if modo == "ia":
+            jogos = gerar_jogos_inteligentes(qtd, resultados_passados=historico if historico else None)
+        else:
+            jogos = gerar_jogos(qtd)
 
-    historico.extend(jogos)
+        historico.extend(jogos)
 
-    return jsonify(jogos)
+        return jsonify(jogos)
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
 
 
 # ================================

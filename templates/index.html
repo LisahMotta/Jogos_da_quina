@@ -42,15 +42,27 @@ async function gerar(modo) {
     document.getElementById("modoAtual").innerText =
         "Modo atual: " + (modo === "ia" ? "Inteligente 🧠" : "Normal 🎲");
 
-    const res = await fetch("/gerar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantidade: qtd, modo: modo })
-    });
+    try {
+        const res = await fetch("/gerar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ quantidade: qtd, modo: modo })
+        });
 
-    const jogos = await res.json();
-    renderJogos(jogos, modo);
-    atualizarHistorico();
+        const data = await res.json();
+
+        if (!res.ok || data.erro) {
+            document.getElementById("resultado").innerHTML =
+                `<p class="erro">Erro ao gerar jogos: ${data.erro || res.statusText}</p>`;
+            return;
+        }
+
+        renderJogos(data, modo);
+        atualizarHistorico();
+    } catch (e) {
+        document.getElementById("resultado").innerHTML =
+            `<p class="erro">Erro de conexão com o servidor.</p>`;
+    }
 }
 
 function renderJogos(jogos, modo) {
