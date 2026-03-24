@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="ball" x1="20%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="35%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Fundo arredondado -->
+  <rect width="192" height="192" rx="38" fill="url(#bg)"/>
+  <!-- Bolinha principal -->
+  <circle cx="96" cy="96" r="66" fill="url(#ball)"/>
+  <circle cx="96" cy="96" r="66" fill="url(#shine)"/>
+  <!-- Borda sutil -->
+  <circle cx="96" cy="96" r="66" fill="none" stroke="white" stroke-width="2" opacity="0.15"/>
+  <!-- Letra Q -->
+  <text x="96" y="118"
+        text-anchor="middle"
+        font-family="'Arial Black', Arial, sans-serif"
+        font-size="74"
+        font-weight="900"
+        fill="white"
+        letter-spacing="-2">Q</text>
+</svg>
