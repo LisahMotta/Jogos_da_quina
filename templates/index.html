@@ -2,29 +2,113 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Gerador Quina</title>
+    <title>Gerador Quina Inteligente</title>
     <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            width: 120px;
+            text-align: center;
+        }
+
+        .botoes {
+            margin: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 10px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .normal {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .ia {
+            background: #22c55e;
+            color: white;
+        }
+
+        .jogo {
+            background: #1e293b;
+            margin: 15px auto;
+            padding: 15px;
+            border-radius: 12px;
+            width: 280px;
+        }
+
+        .bolinha {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .modo-label {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🎯 Gerador Quina Inteligente</h1>
 
-    <input type="number" id="qtd" placeholder="Qtd de jogos" value="5">
+    <input type="number" id="qtd" value="5" min="1">
 
-    <button onclick="gerar()">Gerar Jogos</button>
+    <div class="botoes">
+        <button class="normal" onclick="gerar('normal')">🎲 Modo Normal</button>
+        <button class="ia" onclick="gerar('ia')">🧠 Modo IA</button>
+    </div>
+
+    <div class="modo-label" id="modoAtual">
+        Modo atual: -
+    </div>
 
     <div id="resultado"></div>
 </div>
 
 <script>
-async function gerar() {
+async function gerar(modo) {
     const qtd = document.getElementById("qtd").value;
+
+    // Atualiza texto do modo
+    document.getElementById("modoAtual").innerText =
+        "Modo atual: " + (modo === "ia" ? "Inteligente 🧠" : "Normal 🎲");
 
     const res = await fetch("/gerar", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({quantidade: qtd})
+        body: JSON.stringify({
+            quantidade: qtd,
+            modo: modo
+        })
     });
 
     const jogos = await res.json();
@@ -33,7 +117,15 @@ async function gerar() {
     div.innerHTML = "";
 
     jogos.forEach((jogo, i) => {
-        div.innerHTML += `<p>Jogo ${i+1}: ${jogo.join(" - ")}</p>`;
+        let html = `<div class="jogo"><strong>Jogo ${i+1}</strong><br>`;
+
+        jogo.forEach(num => {
+            html += `<span class="bolinha">${num}</span>`;
+        });
+
+        html += "</div>";
+
+        div.innerHTML += html;
     });
 }
 </script>
