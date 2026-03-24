@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador Quina Inteligente</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Quina IA">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.svg">
+
+    <!-- Estilo -->
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -11,6 +22,13 @@
 <div class="container">
     <h1>🎯 Gerador Quina Inteligente</h1>
     <p class="subtitulo">Gere jogos da Quina com estratégia ou aleatoriamente</p>
+
+    <!-- Banner de instalação PWA -->
+    <div id="installBanner" class="install-banner" style="display:none;">
+        <span>📲 Instale o app no seu dispositivo!</span>
+        <button id="installBtn" class="btn-install">Instalar</button>
+        <button id="dismissBtn" class="btn-dismiss">✕</button>
+    </div>
 
     <div class="card controles">
         <label for="qtd">Quantidade de jogos:</label>
@@ -36,6 +54,35 @@
 </div>
 
 <script>
+// ── PWA: Service Worker ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registrado:', reg.scope))
+        .catch(err => console.warn('SW falhou:', err));
+}
+
+// ── PWA: Banner de instalação ────────────────────────────────────
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').style.display = 'flex';
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBanner').style.display = 'none';
+});
+
+document.getElementById('dismissBtn').addEventListener('click', () => {
+    document.getElementById('installBanner').style.display = 'none';
+});
+
+// ── App ──────────────────────────────────────────────────────────
 async function gerar(modo) {
     const qtd = document.getElementById("qtd").value;
 
@@ -61,7 +108,7 @@ async function gerar(modo) {
         atualizarHistorico();
     } catch (e) {
         document.getElementById("resultado").innerHTML =
-            `<p class="erro">Erro de conexão com o servidor.</p>`;
+            `<p class="erro">Sem conexão com o servidor.</p>`;
     }
 }
 
@@ -80,28 +127,32 @@ function renderJogos(jogos, modo) {
 }
 
 async function atualizarHistorico() {
-    const res = await fetch("/historico");
-    const historico = await res.json();
+    try {
+        const res = await fetch("/historico");
+        const historico = await res.json();
 
-    const section = document.getElementById("historicoSection");
-    const lista = document.getElementById("historicoLista");
+        const section = document.getElementById("historicoSection");
+        const lista = document.getElementById("historicoLista");
 
-    if (historico.length === 0) {
-        section.style.display = "none";
-        return;
-    }
+        if (!historico.length) {
+            section.style.display = "none";
+            return;
+        }
 
-    section.style.display = "block";
-    lista.innerHTML = `<p class="historico-total">Total acumulado: <strong>${historico.length} jogos</strong></p>`;
+        section.style.display = "block";
+        lista.innerHTML = `<p class="historico-total">Total acumulado: <strong>${historico.length} jogos</strong></p>`;
 
-    historico.slice(-10).reverse().forEach((jogo, i) => {
-        let html = `<div class="jogo jogo-historico"><span class="jogo-num">#${historico.length - i}</span><div class="bolinhas">`;
-        jogo.forEach(num => {
-            html += `<span class="bolinha bolinha-sm">${num}</span>`;
+        historico.slice(0, 10).forEach((jogo, i) => {
+            let html = `<div class="jogo jogo-historico"><span class="jogo-num">#${i + 1}</span><div class="bolinhas">`;
+            jogo.forEach(num => {
+                html += `<span class="bolinha bolinha-sm">${num}</span>`;
+            });
+            html += `</div></div>`;
+            lista.innerHTML += html;
         });
-        html += `</div></div>`;
-        lista.innerHTML += html;
-    });
+    } catch (e) {
+        // offline — silencioso
+    }
 }
 
 async function limparHistorico() {
