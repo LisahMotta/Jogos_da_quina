@@ -37,6 +37,11 @@ def init_db():
         """)
         conn.commit()
         cur.close()
+        print("Banco inicializado.")
+    except Exception as e:
+        conn.rollback()
+        # Race condition entre workers — tabela já existe, seguro continuar
+        print(f"Aviso init_db (ignorado): {e}")
     finally:
         conn.close()
 
@@ -89,10 +94,7 @@ def limpar_historico_db():
         conn.close()
 
 
-try:
-    init_db()
-except Exception as e:
-    print(f"Aviso: banco não inicializado — {e}")
+init_db()
 
 
 # ================================
