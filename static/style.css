@@ -179,3 +179,11 @@ button:hover {
 .jogo-historico {
     opacity: 0.85;
 }
+
+.erro {
+    color: #f87171;
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 16px;
+}
