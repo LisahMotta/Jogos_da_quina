@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador Quina</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>🎯 Gerador Quina Inteligente</h1>
+
+    <input type="number" id="qtd" placeholder="Qtd de jogos" value="5">
+
+    <button onclick="gerar()">Gerar Jogos</button>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+async function gerar() {
+    const qtd = document.getElementById("qtd").value;
+
+    const res = await fetch("/gerar", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({quantidade: qtd})
+    });
+
+    const jogos = await res.json();
+
+    const div = document.getElementById("resultado");
+    div.innerHTML = "";
+
+    jogos.forEach((jogo, i) => {
+        div.innerHTML += `<p>Jogo ${i+1}: ${jogo.join(" - ")}</p>`;
+    });
+}
+</script>
+
+</body>
+</html>
