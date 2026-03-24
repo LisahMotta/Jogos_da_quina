@@ -22,32 +22,37 @@ def get_db():
 
 
 def init_db():
-    conn = get_db()
-    if not conn:
-        return
     try:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS historico (
-                id        SERIAL PRIMARY KEY,
-                numeros   INTEGER[],
-                modo      VARCHAR(10) DEFAULT 'normal',
-                criado_em TIMESTAMP  DEFAULT NOW()
-            )
-        """)
-        conn.commit()
-        cur.close()
-        print("Banco inicializado.")
+        conn = get_db()
+        if not conn:
+            return
+        try:
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS historico (
+                    id        SERIAL PRIMARY KEY,
+                    numeros   INTEGER[],
+                    modo      VARCHAR(10) DEFAULT 'normal',
+                    criado_em TIMESTAMP  DEFAULT NOW()
+                )
+            """)
+            conn.commit()
+            cur.close()
+            print("Banco inicializado.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Aviso init_db (ignorado): {e}")
+        finally:
+            conn.close()
     except Exception as e:
-        conn.rollback()
-        # Race condition entre workers — tabela já existe, seguro continuar
-        print(f"Aviso init_db (ignorado): {e}")
-    finally:
-        conn.close()
+        print(f"Aviso: não foi possível conectar ao banco — {e}")
 
 
 def salvar_jogos(jogos, modo):
-    conn = get_db()
+    try:
+        conn = get_db()
+    except Exception:
+        conn = None
     if not conn:
         _historico_mem.extend(jogos)
         return
@@ -60,12 +65,18 @@ def salvar_jogos(jogos, modo):
             )
         conn.commit()
         cur.close()
+    except Exception:
+        conn.rollback()
+        _historico_mem.extend(jogos)
     finally:
         conn.close()
 
 
 def buscar_historico():
-    conn = get_db()
+    try:
+        conn = get_db()
+    except Exception:
+        conn = None
     if not conn:
         return list(_historico_mem)
     try:
@@ -76,12 +87,17 @@ def buscar_historico():
         rows = cur.fetchall()
         cur.close()
         return [list(row[0]) for row in rows]
+    except Exception:
+        return list(_historico_mem)
     finally:
         conn.close()
 
 
 def limpar_historico_db():
-    conn = get_db()
+    try:
+        conn = get_db()
+    except Exception:
+        conn = None
     if not conn:
         _historico_mem.clear()
         return
@@ -90,6 +106,9 @@ def limpar_historico_db():
         cur.execute("DELETE FROM historico")
         conn.commit()
         cur.close()
+    except Exception:
+        conn.rollback()
+        _historico_mem.clear()
     finally:
         conn.close()
 
